@@ -8,46 +8,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout source
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Install dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y \
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
           bc bison build-essential curl flex git gnupg gperf \
           libssl-dev libxml2 libxml2-utils lzop pngcrush rsync \
           schedtool squashfs-tools xsltproc zip zlib1g-dev \
           gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
-    - name: Setup clang
-      run: |
-        git clone --depth=1 https://github.com/kdrag0n/proton-clang clang
+      - name: Setup clang
+        run: |
+          git clone --depth=1 https://github.com/kdrag0n/proton-clang clang
 
-    - name: Build kernel
-      run: |
-        export ARCH=arm64
-        export SUBARCH=arm64
-        export KBUILD_BUILD_USER=Tr4x3
-        export KBUILD_BUILD_HOST=Termux
+      - name: Build kernel
+        run: |
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export KBUILD_BUILD_USER=Tr4x3
+          export KBUILD_BUILD_HOST=Termux
 
-        mkdir out
+          mkdir -p out
 
-        make O=out ARCH=arm64 lavender-perf_defconfig
+          make O=out ARCH=arm64 lavender-perf_defconfig
 
-        PATH="$(pwd)/clang/bin:$PATH" \
-        make -j$(nproc --all) \
+          PATH="$(pwd)/clang/bin:$PATH" \
+          make -j$(nproc --all) \
           O=out \
           ARCH=arm64 \
           CC=clang \
           CROSS_COMPILE=aarch64-linux-gnu- \
-          CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+          CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+          Image.gz-dtb
 
-    - name: Upload Image
-      uses: actions/upload-artifact@v4
-      with:
-        name: kernel-image
-        path: |
-          out/arch/arm64/boot/Image*
+      - name: Upload Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-image
+          path: out/arch/arm64/boot/Image.gz-dtb
